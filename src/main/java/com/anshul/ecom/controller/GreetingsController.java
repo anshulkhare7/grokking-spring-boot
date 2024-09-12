@@ -1,17 +1,18 @@
-package com.anshul.demo;
+package com.anshul.ecom.controller;
 
 import org.springframework.web.bind.annotation.RestController;
+
+import com.anshul.ecom.request.Body;
+import com.anshul.ecom.response.Response;
+
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
-
-import com.anshul.demo.request.Body;
-import com.anshul.demo.response.Response;
 import org.springframework.web.bind.annotation.PostMapping;
 
 
 @RestController
-public class DemoController {
+public class GreetingsController {
     
     @GetMapping("/hello")    
     public Response hello() {

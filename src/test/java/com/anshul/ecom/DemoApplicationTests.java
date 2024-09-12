@@ -1,4 +1,4 @@
-package com.anshul.demo;
+package com.anshul.ecom;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;

@@ -1,4 +1,4 @@
-package com.anshul.demo.request;
+package com.anshul.ecom.request;
 
 import lombok.Data;
 

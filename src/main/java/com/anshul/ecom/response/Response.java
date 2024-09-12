@@ -1,4 +1,4 @@
-package com.anshul.demo.response;
+package com.anshul.ecom.response;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -6,9 +6,9 @@ import lombok.Setter;
 @Getter
 @Setter
 public class Response {    
-    private String body;
+    private String message;
 
     public Response(String body) {
-        this.body = body;
+        this.message = body;
     }
 }
