@@ -15,14 +15,14 @@ import com.anshul.ecom.response.Response;
 @RestController
 public class GreetingsController {
     
-    @GetMapping("/hello")    
+    @GetMapping("/hello")
     public ResponseEntity<Response> hello() {
         return new ResponseEntity<>(new Response("Hello World!"), HttpStatus.OK);
     }
 
-    @GetMapping("/hellowithparam/{name}")    
+    @GetMapping("/hellowithparam/{name}")
     public ResponseEntity<Response> helloWithParam(@PathVariable String name) {
-        return new ResponseEntity<>(new Response("Hello, " + name), HttpStatus.OK);        
+        return new ResponseEntity<>(new Response("Hello, " + name), HttpStatus.OK);
     }
 
     @PostMapping("/bye")
