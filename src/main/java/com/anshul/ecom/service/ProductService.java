@@ -18,19 +18,27 @@ public class ProductService {
         return repo.findAll();
     }
 
-    public Product getProductById(int prodId) {
+    public Product getProductById(String prodId) {
         return repo.findById(prodId).orElse(new Product());
+    }
+
+    public List<Product> getProductByCategory(String category) {
+        return repo.findByCategory(category);
     }
 
     public void addProduct(Product prod) {
         repo.save(prod);
     }
 
-    public void updateProduct(Product prod) {
-        repo.save(prod);
+    public Product updateProduct(Product prod) {
+        Product existingProd = repo.findById(prod.getId()).get();
+        existingProd.setCategory(prod.getCategory());
+        existingProd.setPrice(prod.getPrice());
+        existingProd.setProdName(prod.getProdName());
+        return repo.save(prod);
     }
 
-    public void deleteProduct(int prodId) {
+    public void deleteProduct(String prodId) {
         repo.deleteById(prodId);
     }
 

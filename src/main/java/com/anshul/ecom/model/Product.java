@@ -1,19 +1,22 @@
 package com.anshul.ecom.model;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
+
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.Document;
+
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-@Data
+@Document(collection = "products")
 @AllArgsConstructor
 @NoArgsConstructor
-@Entity
+@Data
 public class Product {
 
     @Id
-    private int id;
+    private String id;
     private String prodName;
     private int price;
+    private String category;
 }
