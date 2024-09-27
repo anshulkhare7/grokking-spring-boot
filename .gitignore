@@ -44,3 +44,10 @@ gradle-app.setting
 
 # Cache of project
 .gradletasknamecache
+
+# Add these lines if they're not already present
+.gradle
+build/
+!gradle/wrapper/gradle-wrapper.jar
+!**/src/main/**/build/
+!**/src/test/**/build/
