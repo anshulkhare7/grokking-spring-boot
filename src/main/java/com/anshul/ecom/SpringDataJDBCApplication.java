@@ -1,7 +1,5 @@
 package com.anshul.ecom;
 
-import java.util.List;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -9,6 +7,9 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.jdbc.core.JdbcTemplate;
+
+import com.anshul.ecom.repository.AuthorRepository;
+import com.anshul.ecom.repository.BookRepository;
 
 @SpringBootApplication
 public class SpringDataJDBCApplication implements CommandLineRunner {
@@ -22,15 +23,20 @@ public class SpringDataJDBCApplication implements CommandLineRunner {
 		SpringApplication.run(SpringDataJDBCApplication.class, args);
 	}
 
-	@Override
+	@Autowired
+    BookRepository bookRepository;
+
+    @Autowired
+    AuthorRepository authorRepository;
+
+    @Override
     public void run(String... strings) throws Exception {
-        List bookList = jdbcTemplate.queryForList("select * from book order by id desc");;
-        log.info(String.valueOf(bookList));
+        log.info("find all books");
 
-        List authorList = jdbcTemplate.queryForList("select * from author order by id desc");;
-        log.info(String.valueOf(authorList));
+        log.info(String.valueOf(bookRepository.findAll()));
 
-        
+        log.info("find all authors");
+
+        log.info(String.valueOf(authorRepository.findAll()));
     }
-
-    }
+}
