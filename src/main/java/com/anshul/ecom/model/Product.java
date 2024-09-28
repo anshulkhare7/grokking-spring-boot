@@ -1,6 +1,7 @@
 package com.anshul.ecom.model;
 
 
+
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
@@ -14,7 +15,7 @@ import lombok.NoArgsConstructor;
 @Data
 public class Product {
 
-    @Id
+    @Id    
     private String id;
     private String prodName;
     private int price;
