@@ -1,25 +1,34 @@
 package com.anshul.ecom.entity;
 
-import java.util.HashSet;
-import java.util.Set;
+import java.util.List;
+import java.util.stream.Collectors;
 
-import org.springframework.data.annotation.Id;
-import org.springframework.data.relational.core.mapping.MappedCollection;
-import org.springframework.data.relational.core.mapping.Table;
-
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
+import jakarta.persistence.ManyToMany;
 import lombok.Data;
 
 @Data
-@Table(name = "BOOK")
+@Entity
 public class Book {
-     @Id
-    private long id;
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    private Long id;
 
     private String name;
     private String summary;
 
-    @MappedCollection(idColumn = "BOOK_ID")
-    private Set<AuthorBook> authors = new HashSet<>();
+    @ManyToMany
+    @JoinTable(
+            name = "book_authors",
+            joinColumns = @JoinColumn(name = "book_id"),
+            inverseJoinColumns = @JoinColumn(name = "author_id"))
+    private List<Author> authors;
 
     @Override
     public String toString() {
@@ -27,7 +36,7 @@ public class Book {
                 "id=" + id +
                 ", name='" + name + '\'' +
                 ", summary='" + summary + '\'' +
-                ", authors=" + authors.stream().mapToLong(i -> i.getAuthorId()).boxed().toList().toString() +
+                ", authors='" + authors.stream().map(i-> i.getFullName()).collect(Collectors.toList()) + '\'' +
                 '}';
     }
 }
