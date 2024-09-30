@@ -1,8 +1,10 @@
 package com.anshul.ecom.repository;
 
-import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.repository.CrudRepository;
+import org.springframework.stereotype.Repository;
 
-import com.anshul.ecom.entity.Book;
+import com.anshul.ecom.model.Book;
 
-public interface BookRepository extends JpaRepository<Book, Long> {
+@Repository
+public interface BookRepository extends CrudRepository<Book, String> {
 }
