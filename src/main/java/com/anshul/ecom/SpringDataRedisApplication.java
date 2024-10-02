@@ -1,6 +1,7 @@
 package com.anshul.ecom;
 
-import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -8,11 +9,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-
-import com.anshul.ecom.model.Author;
-import com.anshul.ecom.model.Book;
-import com.anshul.ecom.repository.AuthorRepository;
-import com.anshul.ecom.repository.BookRepository;
+import org.springframework.data.redis.core.HashOperations;
+import org.springframework.data.redis.core.ListOperations;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.SetOperations;
+import org.springframework.data.redis.serializer.StringRedisSerializer;
 
 @SpringBootApplication
 public class SpringDataRedisApplication implements CommandLineRunner {
@@ -24,49 +25,72 @@ public class SpringDataRedisApplication implements CommandLineRunner {
     }
 
     @Autowired
-    private BookRepository bookRepository;
-
-    @Autowired
-    private AuthorRepository authorRepository;
+    private RedisTemplate redisTemplate;
 
     @Override
     public void run(String... args) throws Exception {
-        // CRUD started
+        //set the String serializer for key and value
+        redisTemplate.setKeySerializer(new StringRedisSerializer());
+        redisTemplate.setValueSerializer(new StringRedisSerializer());
 
-        //create author
-        Author andyWeir = new Author();
-        andyWeir.setFirstName("Andy");
-        andyWeir.setLastName("Weir");
-        authorRepository.save(andyWeir);
+        //string operations
+        redisTemplate.opsForValue().set("Book", "Author");
 
-        //read author
-        log.info(String.valueOf(authorRepository.findAll()));
+        log.info(String.valueOf(redisTemplate.hasKey("Book")));
+        log.info(String.valueOf(redisTemplate.opsForValue().get("Book")));
 
-        ArrayList<Author> martianAuthors = new ArrayList<>();
-        martianAuthors.add(andyWeir);
+        //list operator
+        ListOperations redisListOperator = redisTemplate.opsForList();
 
-        //create book
-        Book martian = new Book();
-        martian.setName("Martian");
-        martian.setSummary("One problem at a time and survive");
-        bookRepository.save(martian);
+        //list operations
+        redisListOperator.rightPush("BookList", "Atomic Habits");
+        redisListOperator.rightPush("BookList", "Martian");
+        redisListOperator.rightPush("BookList", "The Psychology Of Money");
+        redisListOperator.rightPush("BookList", "Zero To One");
 
-        //read book
-        log.info(String.valueOf(bookRepository.findAll()));
+        log.info(String.valueOf(redisTemplate.hasKey("BookList")));
+        log.info(String.valueOf(redisListOperator.size("BookList")));
+        log.info(String.valueOf(redisListOperator.index("BookList", 1)));
+        log.info(String.valueOf(redisListOperator.range("BookList", 2, 3)));
 
-        //update book
-        martian.setAuthors(martianAuthors);
-        bookRepository.save(martian);
+        redisListOperator.set("BookList", 1, "Project Hail Mary");
+        log.info(String.valueOf(redisListOperator.index("BookList", 1)));
 
-        //read book
-        log.info(String.valueOf(bookRepository.findAll()));
+        //set operator
+        SetOperations redisSetOperator = redisTemplate.opsForSet();
 
-        //delete author
-        authorRepository.delete(andyWeir);
+        //set operations
+        redisSetOperator.add("BookSet", "Atomic Habits", "Martian", "The Psychology Of Money", "Leaders eat last");
 
-        //read author
-        log.info(String.valueOf(authorRepository.findAll()));
+        log.info(String.valueOf(redisSetOperator.size("BookSet")));
 
-        // CRUD finished
+        log.info(String.valueOf(redisSetOperator.isMember("BookSet", "Martian")));
+        log.info(String.valueOf(redisSetOperator.isMember("BookSet", "Zero To One")));
+
+        log.info(redisSetOperator.members("BookSet").toString());
+
+        redisSetOperator.remove("BookSet", "Martian");
+
+        log.info(redisSetOperator.members("BookSet").toString());
+
+        //set the String serializer for Hash key and value
+        redisTemplate.setHashKeySerializer(new StringRedisSerializer());
+        redisTemplate.setHashValueSerializer(new StringRedisSerializer());
+
+        //Hash operator
+        HashOperations redisHashOperator = redisTemplate.opsForHash();
+
+        //Hash operations
+        Map thePsychologyOfMoney = new HashMap<String, String>();
+        thePsychologyOfMoney.put("id", "thePsychologyOfMoney");
+        thePsychologyOfMoney.put("name", "The Psychology of Money");
+        thePsychologyOfMoney.put("summary", "Timeless Lessons on Wealth, Greed, and Happiness");
+
+        redisHashOperator.putAll("Book" + thePsychologyOfMoney.get("id"), thePsychologyOfMoney);
+
+        log.info(String.valueOf(redisHashOperator.entries("Book" + thePsychologyOfMoney.get("id"))));
+
+        // HashMapper<Book, String, String> bookHashMapper = new DecoratingStringHashMapper<>(new PojoHashMapper<>(Book.class));
+        // log.info(String.valueOf(bookHashMapper.fromHash(redisHashOperator.entries("Book" + thePsychologyOfMoney.get("id")))));
     }
 }
