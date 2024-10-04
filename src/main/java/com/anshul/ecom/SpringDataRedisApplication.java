@@ -1,25 +1,16 @@
 package com.anshul.ecom;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.data.redis.connection.stream.Consumer;
-import org.springframework.data.redis.connection.stream.MapRecord;
-import org.springframework.data.redis.connection.stream.ReadOffset;
-import org.springframework.data.redis.connection.stream.StreamOffset;
-import org.springframework.data.redis.connection.stream.StreamReadOptions;
-import org.springframework.data.redis.connection.stream.StreamRecords;
-import org.springframework.data.redis.connection.stream.StringRecord;
+import org.springframework.dao.DataAccessException;
+import org.springframework.data.redis.core.RedisOperations;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.data.redis.core.StreamOperations;
+import org.springframework.data.redis.core.SessionCallback;
+import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 
 @SpringBootApplication
@@ -36,51 +27,39 @@ public class SpringDataRedisApplication implements CommandLineRunner {
 
     @Override
     public void run(String... args) throws Exception {
-        //set String serializer
+        //set the String serializer for key and value
         redisTemplate.setKeySerializer(new StringRedisSerializer());
-        redisTemplate.setValueSerializer(new StringRedisSerializer());
-        redisTemplate.setHashKeySerializer(new StringRedisSerializer());
-        redisTemplate.setHashValueSerializer(new StringRedisSerializer());
+        redisTemplate.setValueSerializer(new StringRedisSerializer());    
 
-        //Redis Streams
-        String streamKey = "bookStream";
-        String consumerGroupKey = "educativeGroup";
-        String consumerNameKey = "educativeConsumer";
-        List<String> books = Arrays.asList(new String[]{"Martian", "Atomic Habits", "The Psychology Of Money",
-                "Project Hail Mary", "Zero To One"});
+        //Redis Transactions
+        redisTemplate.setEnableTransactionSupport(true);
 
-        StreamOperations redisStreamOperator = redisTemplate.opsForStream();
+        RedisOperations<String, String> redisOperations = redisTemplate.opsForValue().getOperations();
         
-        for (int i = 0; i < books.size(); i++) {
-            Map bookMap = new HashMap<String, String>();
-            bookMap.put("book", books.get(i));
+        //execute a transaction
+        SessionCallback<Object> sessionCallback = new SessionCallback<Object>() {
+            @Override
+            public Object execute(RedisOperations operations) throws DataAccessException {
 
-            //appending
-            StringRecord record = StreamRecords.string(bookMap).withStreamKey(streamKey);
-            redisStreamOperator.add(record);
-        }
+                //invoke redis multi command
+                operations.multi();
 
-        Consumer educativeConsumer = Consumer.from(consumerGroupKey, consumerNameKey);
-        StreamReadOptions readOptions = StreamReadOptions.empty();
-        StreamOffset streamOffset = StreamOffset.create(streamKey, ReadOffset.lastConsumed());
-        ReadOffset readOffset = ReadOffset.from("0-0");
+                ValueOperations<String, String> valueOps = operations.opsForValue();
+                valueOps.set("book1", "Martian");
+                valueOps.set("book2", "Atomic Habits");
+                valueOps.increment("book3", 1);
 
-        //create group if it doesn't exist
-        if (redisStreamOperator.groups(streamKey).isEmpty()) {
-            redisStreamOperator.createGroup(streamKey, readOffset, consumerGroupKey);
-        }
+                //invoke redis exec command
+                return operations.exec();
+            }
+        };
 
-        //synchronous read
-        List<MapRecord> messages = redisStreamOperator.read(educativeConsumer, readOptions.count(2), streamOffset);
-        log.info(String.valueOf(messages));
+        //execute the sessionCallback
+        redisOperations.execute(sessionCallback);
 
-        //acknowledge the message
-        messages.forEach(map -> {
-            redisStreamOperator.acknowledge(streamKey, consumerGroupKey, map.getId());
-        });
-
-        //read again from the last consumed
-        messages = redisStreamOperator.read(educativeConsumer, readOptions.count(2), streamOffset);
-        log.info(String.valueOf(messages));
+        //log the values
+        log.info(String.valueOf(redisOperations.opsForValue().get("book1")));
+        log.info(String.valueOf(redisOperations.opsForValue().get("book2")));
+        log.info(String.valueOf(redisOperations.opsForValue().get("book3")));
     }
 }
